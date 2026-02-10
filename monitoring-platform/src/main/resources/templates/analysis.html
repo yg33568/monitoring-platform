@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>根因分析 - 智能运维平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ai-diagnosis-card {
+            border-left: 4px solid #0d6efd;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .confidence-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .diagnosis-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+        .risk-high {
+            border-left: 4px solid #dc3545;
+        }
+        .risk-medium {
+            border-left: 4px solid #ffc107;
+        }
+        .risk-low {
+            border-left: 4px solid #0dcaf0;
+        }
+        .component-box {
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-search me-2"></i>智能根因分析</h2>
+            <p class="text-muted">基于组件依赖拓扑和AI机器学习的故障分析</p>
+
+            <!-- 拓扑图说明 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5><i class="bi bi-diagram-3 me-2"></i>系统组件依赖关系</h5>
+                    <div class="row text-center">
+                        <div class="col-md-2">
+                            <div class="border rounded p-3 mb-3">
+                                <i class="bi bi-cpu display-4 text-primary"></i>
+                                <h6>CPU</h6>
+                                <small>中央处理器</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-3 mb-3">
+                                <i class="bi bi-memory display-4 text-success"></i>
+                                <h6>内存</h6>
+                                <small>数据存储</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-3 mb-3">
+                                <i class="bi bi-hdd display-4 text-info"></i>
+                                <h6>磁盘</h6>
+                                <small>持久存储</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-3 mb-3">
+                                <i class="bi bi-wifi display-4 text-warning"></i>
+                                <h6>网络</h6>
+                                <small>通信传输</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-3 mb-3">
+                                <i class="bi bi-diagram-3 display-4 text-danger"></i>
+                                <h6>进程</h6>
+                                <small>运行程序</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 依赖关系图 -->
+                    <div class="text-center mt-4">
+                        <div class="d-flex justify-content-center align-items-center flex-wrap">
+                            <div class="component-box bg-primary text-white m-2 p-3 rounded">CPU</div>
+                            <div class="mx-3"><i class="bi bi-arrow-right"></i></div>
+                            <div class="component-box bg-success text-white m-2 p-3 rounded">内存</div>
+                            <div class="mx-3"><i class="bi bi-arrow-right"></i></div>
+                            <div class="component-box bg-info text-white m-2 p-3 rounded">磁盘</div>
+                        </div>
+                        <div class="d-flex justify-content-center align-items-center flex-wrap mt-3">
+                            <div class="component-box bg-primary text-white m-2 p-3 rounded">CPU</div>
+                            <div class="mx-3"><i class="bi bi-arrow-right"></i></div>
+                            <div class="component-box bg-danger text-white m-2 p-3 rounded">进程</div>
+                            <div class="mx-3"><i class="bi bi-arrow-right"></i></div>
+                            <div class="component-box bg-warning text-white m-2 p-3 rounded">网络</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI智能诊断卡片 - 新增部分 -->
+            <div class="card ai-diagnosis-card mb-4" th:if="${smartAnalysis}">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-robot me-2"></i> 🤖 AI智能诊断
+                        <span class="badge bg-light text-dark ms-2" th:text="'机器学习分析'"></span>
+                    </div>
+                    <small th:text="'分析时间: ' + ${#dates.format(smartAnalysis.analysisTime, 'HH:mm:ss')}"></small>
+                </div>
+                <div class="card-body">
+                    <div th:if="${smartAnalysis.diagnoses != null and !smartAnalysis.diagnoses.empty}">
+                        <p class="text-muted mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            基于机器学习算法实时分析系统指标，识别潜在问题模式
+                        </p>
+
+                        <div th:each="diagnosis : ${smartAnalysis.diagnoses}"
+                             class="diagnosis-item"
+                             th:classappend="${diagnosis.confidence > 70} ? 'risk-high' : (${diagnosis.confidence > 50} ? 'risk-medium' : 'risk-low')">
+
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1" th:text="${diagnosis.type}">内存泄漏风险</h6>
+                                    <small class="text-muted" th:text="${diagnosis.evidence}">
+                                        内存持续增长，GC频繁
+                                    </small>
+                                </div>
+                                <span class="badge"
+                                      th:classappend="${diagnosis.confidence > 70} ? 'bg-danger' : (${diagnosis.confidence > 50} ? 'bg-warning' : 'bg-info')"
+                                      th:text="${diagnosis.confidence} + '%'">85%</span>
+                            </div>
+
+                            <div class="confidence-bar mb-1">
+                                <div class="confidence-fill"
+                                     th:classappend="${diagnosis.confidence > 70} ? 'bg-danger' : (${diagnosis.confidence > 50} ? 'bg-warning' : 'bg-info')"
+                                     th:style="'width:' + ${diagnosis.confidence} + '%'"></div>
+                            </div>
+
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-lightbulb me-1"></i>
+                                    <span th:switch="${diagnosis.type}">
+                                        <span th:case="'内存泄漏风险'">建议：检查堆内存使用，分析GC日志，重启相关服务</span>
+                                        <span th:case="'CPU性能问题'">建议：优化代码逻辑，检查线程阻塞，降低并发数</span>
+                                        <span th:case="'磁盘空间风险'">建议：清理临时文件，监控磁盘使用，扩容存储</span>
+                                        <span th:case="*">建议：检查系统日志，监控相关指标变化</span>
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${smartAnalysis.diagnoses == null or smartAnalysis.diagnoses.empty}"
+                         class="text-center py-4">
+                        <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                        <h5 class="text-success mt-3">系统运行正常</h5>
+                        <p class="text-muted">当前未检测到明显的系统问题，所有指标均在正常范围内。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!--
+            <div class="card">
+                <div class="card-body">
+                    <h5><i class="bi bi-clipboard-data me-2"></i>传统分析结果</h5>
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-lightbulb me-2"></i>当前系统状态分析</h6>
+                        <p><strong>根因定位:</strong> 内存资源紧张</p>
+                        <p><strong>置信度:</strong> 85%</p>
+                        <p><strong>证据:</strong> 内存使用率持续高于80%，影响其他组件性能</p>
+                        <p><strong>建议:</strong> 建议清理内存缓存，关闭不必要的应用程序</p>
+                    </div>
+                </div>
+            </div>
+-->
+            <!-- 如果没有智能分析数据时显示提示 -->
+            <div class="card mt-4" th:unless="${smartAnalysis}">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-robot text-muted fs-1"></i>
+                    <h5 class="text-muted mt-3">AI分析加载中</h5>
+                    <p class="text-muted">智能分析服务正在处理数据，请稍后刷新页面。</p>
+                    <button class="btn btn-outline-primary" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i> 刷新页面
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a th:href="@{/interactive-dashboard}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> 返回监控大屏
+                </a>
+                <button class="btn btn-outline-secondary ms-2" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> 刷新分析
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 简单的交互效果
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('根因分析页面加载完成');
+
+        // 为诊断项添加悬停效果
+        const diagnosisItems = document.querySelectorAll('.diagnosis-item');
+        diagnosisItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+    });
+</script>
+</body>
+</html>

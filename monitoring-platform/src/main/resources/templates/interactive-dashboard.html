@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能运维平台 - 交互式监控大屏</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    .sidebar {
+        background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
+        color: white;
+        height: 100vh;
+        position: fixed;
+    }
+    .main-content {
+        margin-left: 250px;
+        padding: 20px;
+    }
+    .metric-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+    }
+    .service-card {
+        border-left: 4px solid #007bff;
+    }
+    .service-card.warning {
+        border-left-color: #ffc107;
+    }
+    .service-card.danger {
+        border-left-color: #dc3545;
+    }
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .status-healthy { background-color: #28a745; }
+    .status-warning { background-color: #ffc107; }
+    .status-danger { background-color: #dc3545; }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row">
+    <!-- 侧边栏 -->
+    <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+      <div class="position-sticky pt-3">
+        <h4 class="text-center mb-4">
+          <i class="bi bi-graph-up"></i>
+          智能运维平台
+        </h4>
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="/microservices">
+              <i class="bi bi-diagram-3"></i>
+              组件监控
+            </a >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active text-white" href="/interactive-dashboard">
+              <i class="bi bi-display"></i>
+              监控大屏
+            </a >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="/history">
+              <i class="bi bi-clock-history"></i>
+              历史数据
+            </a >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="/analysis">
+              <i class="bi bi-search"></i>
+              根因分析
+            </a >
+          </li>
+        </ul>
+
+        <!-- 实时状态 -->
+        <div class="mt-5">
+          <h6 class="text-white-50">系统状态</h6>
+          <div class="d-flex align-items-center mb-2">
+            <span class="status-indicator status-healthy"></span>
+            <small>数据采集</small>
+          </div>
+          <div class="d-flex align-items-center mb-2">
+            <span class="status-indicator status-healthy"></span>
+            <small>智能预警</small>
+          </div>
+          <div class="d-flex align-items-center">
+            <span class="status-indicator status-healthy"></span>
+            <small>数据库连接</small>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+      <!-- 页面标题 -->
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+          <i class="bi bi-display me-2"></i>
+          监控大屏
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group me-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="refreshData()">
+              <i class="bi bi-arrow-clockwise"></i> 刷新数据
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 预警面板 -->
+      <div class="alert alert-warning alert-dismissible fade show" role="alert" id="alertPanel" style="display: none;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>预警：</strong>
+        <span id="alertMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- 核心指标行 -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card metric-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h6 class="card-title text-muted">平均CPU使用率</h6>
+                  <h3 id="avgCpuUsage" class="text-primary">0%</h3>
+                </div>
+                <div class="align-self-center">
+                  <i class="bi bi-cpu text-primary" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card metric-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h6 class="card-title text-muted">平均内存使用率</h6>
+                  <h3 id="avgMemUsage" class="text-success">0%</h3>
+                </div>
+                <div class="align-self-center">
+                  <i class="bi bi-memory text-success" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card metric-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h6 class="card-title text-muted">平均响应时间</h6>
+                  <h3 id="avgResponseTime" class="text-info">0ms</h3>
+                </div>
+                <div class="align-self-center">
+                  <i class="bi bi-speedometer2 text-info" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card metric-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h6 class="card-title text-muted">活跃服务</h6>
+                  <h3 id="activeServices" class="text-warning">0/5</h3>
+                </div>
+                <div class="align-self-center">
+                  <i class="bi bi-server text-warning" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 服务监控区域 -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5><i class="bi bi-diagram-3 me-2"></i>微服务状态</h5>
+            <div id="serviceStatusList">
+              <!-- 服务状态将通过JavaScript动态加载 -->
+              <div class="text-center">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">加载中...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5><i class="bi bi-activity me-2"></i>实时指标趋势</h5>
+            <div id="realtimeChart" style="height: 300px;">
+              <div class="text-center">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">加载中...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 服务操作记录 -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="chart-container">
+            <h5><i class="bi bi-list-check me-2"></i>最近操作记录</h5>
+            <div id="operationLogs">
+              <p class="text-muted">暂无操作记录</p >
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Bootstrap & ECharts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+
+<!-- 服务操作JavaScript -->
+<script>
+  // 初始化函数
+  document.addEventListener('DOMContentLoaded', function() {
+      loadServiceStatus();
+      loadRealtimeChart();
+      setInterval(loadServiceStatus, 10000); // 每10秒刷新一次
+  });
+
+  // 加载服务状态
+  function loadServiceStatus() {
+      fetch('/api/metrics/components')
+          .then(response => response.json())
+          .then(data => {
+              updateServiceStatusList(data);
+              updateSummaryMetrics(data);
+          })
+          .catch(error => {
+              console.error('加载服务状态失败:', error);
+          });
+  }
+
+  function updateServiceStatusList(data) {
+    console.log('交互式监控数据:', data); // 调试用
+
+    const componentList = document.getElementById('serviceStatusList');
+    let html = '';
+
+    // 处理核心组件
+    const coreComponents = [
+        { name: 'CPU', data: data.CPU, getText: (d) => `使用率: ${d?.cpuUsage?.toFixed(1) || 0}%` },
+        { name: 'Memory', data: data.Memory, getText: (d) => `使用率: ${d?.memUsage?.toFixed(1) || 0}%` },
+        { name: 'Network', data: data.Network, getText: (d) => `速率: ${d?.networkRate?.toFixed(2) || 0}MB/s` },
+        { name: 'Processes', data: data.Processes, getText: (d) => `数量: ${d?.processCount || 0}个` }
+    ];
+
+    // 添加核心组件
+    coreComponents.forEach(comp => {
+        if (comp.data) {
+            const usage = comp.name === 'CPU' ? comp.data.cpuUsage :
+                         comp.name === 'Memory' ? comp.data.memUsage : 50;
+            const statusClass = getComponentStatus(usage);
+
+            html += `
+            <div class="card service-card ${statusClass} mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">
+                                <span class="status-indicator ${getStatusColorClass(statusClass)}"></span>
+                                ${getComponentDisplayName(comp.name)}
+                            </h6>
+                            <small class="text-muted">${comp.getText(comp.data)}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+    });
+
+// 简化状态判断
+function getComponentStatus(usage) {
+    if (usage > 80) return 'danger';
+    if (usage > 60) return 'warning';
+    return '';
+}
+    // 添加磁盘组件
+    if (data.Disks && data.Disks.length > 0) {
+        data.Disks.forEach(disk => {
+            const statusClass = getComponentStatus(disk.usagePercent);
+            const diskName = 'Disk-' + disk.mountPoint.replace(':', '').replace('\\', '');
+
+            html += `
+            <div class="card service-card ${statusClass} mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">
+                                <span class="status-indicator ${getStatusColorClass(statusClass)}"></span>
+                                ${getComponentDisplayName(diskName)}
+                            </h6>
+                            <small class="text-muted">
+                                已用: ${disk.usedSpace}GB/总共: ${disk.totalSpace}GB (${disk.usagePercent.toFixed(1)}%)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+
+    componentList.innerHTML = html || '<p class="text-muted">暂无数据</p>';
+}
+
+
+// 辅助函数：获取组件显示名称
+function getComponentDisplayName(componentName) {
+    const names = {
+        'CPU': '中央处理器',
+        'Memory': '内存',
+        'Network': '网络流量',
+        'Processes': '运行进程'
+    };
+
+    // 动态处理磁盘名称
+    if (componentName.startsWith('Disk-')) {
+        const diskLetter = componentName.substring(5); // 去掉 "Disk-"
+        return diskLetter + '盘存储';
+    }
+
+    return names[componentName] || componentName;
+}
+
+// 辅助函数：获取状态颜色类
+function getStatusColorClass(statusClass) {
+    if (statusClass.includes('danger')) return 'status-danger';
+    if (statusClass.includes('warning')) return 'status-warning';
+    return 'status-healthy';
+}
+
+// 新的组件操作函数
+function viewComponentDetails(componentName) {
+    const displayName = getComponentDisplayName(componentName);
+    alert(`查看${displayName}的详细信息\n\n功能开发中...`);
+}
+
+function analyzeComponent(componentName) {
+    const displayName = getComponentDisplayName(componentName);
+    alert(`对${displayName}进行深度分析\n\n分析功能开发中...`);
+}
+
+
+  function updateSummaryMetrics(data) {
+    // 使用新的数据格式
+    const cpuUsage = data.CPU?.cpuUsage || 0;
+    const memUsage = data.Memory?.memUsage || 0;
+    const diskCount = data.Disks?.length || 0;
+    const totalComponents = 4 + diskCount; // 4个核心组件 + 磁盘数量
+
+    document.getElementById('avgCpuUsage').textContent = cpuUsage.toFixed(1) + '%';
+    document.getElementById('avgMemUsage').textContent = memUsage.toFixed(1) + '%';
+    document.getElementById('avgResponseTime').textContent = '正常';
+    document.getElementById('activeServices').textContent = totalComponents + '/' + totalComponents;
+}
+        // 获取状态类名
+        function getStatusClass(cpuUsage, memUsage) {
+            if (cpuUsage > 80 || memUsage > 85) return 'danger';
+            if (cpuUsage > 60 || memUsage > 70) return 'warning';
+            return '';
+        }
+
+        // 获取状态文本
+        function getStatusText(cpuUsage, memUsage) {
+            if (cpuUsage > 80 || memUsage > 85) return '危险';
+            if (cpuUsage > 60 || memUsage > 70) return '警告';
+            return '正常';
+        }
+
+        // 服务操作函数
+        function restartService(serviceName) {
+            fetch(`/api/service/restart/${serviceName}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`服务 ${serviceName} 重启成功！`, 'success');
+                    addOperationLog(`重启服务: ${serviceName}`, 'success');
+                    loadServiceStatus(); // 刷新状态
+                } else {
+                    showAlert(`服务 ${serviceName} 重启失败，请稍后重试`, 'danger');
+                    addOperationLog(`重启服务失败: ${serviceName}`, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('重启服务错误:', error);
+                showAlert('操作失败，请检查网络连接', 'danger');
+            });
+        }
+
+        function viewLogs(serviceName) {
+            fetch(`/api/service/logs/${serviceName}`)
+            .then(response => response.json())
+            .then(data => {
+                showLogsModal(serviceName, data.logs);
+                addOperationLog(`查看日志: ${serviceName}`, 'info');
+            })
+            .catch(error => {
+                console.error('获取日志错误:', error);
+                showAlert('获取日志失败', 'danger');
+            });
+        }
+
+        function analyzeService(serviceName) {
+            fetch(`/api/service/analyze/${serviceName}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showAnalysisResult(serviceName, data);
+                addOperationLog(`深度分析: ${serviceName}`, 'primary');
+            })
+            .catch(error => {
+                console.error('分析服务错误:', error);
+                showAlert('分析服务失败', 'danger');
+            });
+        }
+
+        // 辅助函数：显示日志模态框
+        function showLogsModal(serviceName, logs) {
+            const modalHtml = `
+                <div class="modal fade" id="logsModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">${serviceName} - 运行日志</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto;">${logs}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const existingModal = document.getElementById('logsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = new bootstrap.Modal(document.getElementById('logsModal'));
+            modal.show();
+        }
+  // 辅助函数：显示分析结果
+        function showAnalysisResult(serviceName, analysisData) {
+            const analysisText = `
+健康评分: ${analysisData.healthScore}/100
+性能等级: ${analysisData.performanceLevel}
+CPU压力: ${(analysisData.metricsAnalysis.cpuPressure * 100).toFixed(1)}%
+内存泄漏风险: ${(analysisData.metricsAnalysis.memoryLeakRisk * 100).toFixed(1)}%
+网络延迟影响: ${(analysisData.metricsAnalysis.networkLatencyImpact * 100).toFixed(1)}%
+
+建议: ${analysisData.recommendation}
+            `.trim();
+
+            alert(`服务 ${serviceName} 分析结果：\n\n${analysisText}`);
+        }
+
+        // 显示警告信息
+        function showAlert(message, type) {
+            const alertPanel = document.getElementById('alertPanel');
+            const alertMessage = document.getElementById('alertMessage');
+
+            alertPanel.className = `alert alert-${type} alert-dismissible fade show`;
+            alertMessage.textContent = message;
+            alertPanel.style.display = 'block';
+
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                alertPanel.style.display = 'none';
+            }, 5000);
+        }
+
+        // 添加操作记录
+        function addOperationLog(action, type) {
+            const logsContainer = document.getElementById('operationLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const badgeClass = `badge bg-${type}`;
+
+            const logEntry = `
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <span>${action}</span>
+                    <div>
+                        <span class="${badgeClass} me-2">${type}</span>
+                        <small class="text-muted">${timestamp}</small>
+                    </div>
+                </div>
+            `;
+
+            if (logsContainer.querySelector('.text-muted')) {
+                logsContainer.innerHTML = logEntry;
+            } else {
+                logsContainer.insertAdjacentHTML('afterbegin', logEntry);
+            }
+        }
+
+        // 刷新数据
+        function refreshData() {
+            loadServiceStatus();
+            showAlert('数据已刷新', 'info');
+            addOperationLog('手动刷新数据', 'secondary');
+        }
+
+        // 实时图表 - 连接到真实数据
+function loadRealtimeChart() {
+    const chartDom = document.getElementById('realtimeChart');
+    const myChart = echarts.init(chartDom);
+
+    // 初始化数据存储
+    let timeData = [];
+    let cpuData = [];
+    let memoryData = [];
+    let networkData = [];
+
+    // 初始图表配置
+    const option = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross'
+            }
+        },
+        legend: {
+            data: ['CPU使用率', '内存使用率', '网络速率'],
+            textStyle: {
+                color: '#666'
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: timeData,
+            axisLabel: {
+                color: '#666',
+                formatter: function(value) {
+                    return value.split(' ')[1]; // 只显示时间部分
+                }
+            }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                name: '使用率(%)',
+                min: 0,
+                max: 100,
+                axisLabel: {
+                    formatter: '{value}%',
+                    color: '#666'
+                }
+            },
+            {
+                type: 'value',
+                name: '网络(MB/s)',
+                min: 0,
+                axisLabel: {
+                    formatter: '{value} MB/s',
+                    color: '#666'
+                }
+            }
+        ],
+        series: [
+            {
+                name: 'CPU使用率',
+                type: 'line',
+                data: cpuData,
+                smooth: true,
+                lineStyle: {
+                    width: 3
+                },
+                itemStyle: {
+                    color: '#1890ff'
+                }
+            },
+            {
+                name: '内存使用率',
+                type: 'line',
+                data: memoryData,
+                smooth: true,
+                lineStyle: {
+                    width: 3
+                },
+                itemStyle: {
+                    color: '#52c41a'
+                }
+            },
+            {
+                name: '网络速率',
+                type: 'line',
+                yAxisIndex: 1,
+                data: networkData,
+                smooth: true,
+                lineStyle: {
+                    width: 2,
+                    type: 'dashed'
+                },
+                itemStyle: {
+                    color: '#faad14'
+                }
+            }
+        ]
+    };
+
+    myChart.setOption(option);
+
+    // 更新图表数据的函数
+    function updateChartData() {
+        fetch('/api/metrics/components')
+            .then(response => response.json())
+            .then(data => {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+
+                // 获取实时数据
+                const cpuUsage = data.CPU?.cpuUsage || 0;
+                const memoryUsage = data.Memory?.memUsage || 0;
+                const networkRate = data.Network?.networkRate || 0;
+
+                // 限制数据点数量（最多20个）
+                if (timeData.length >= 20) {
+                    timeData.shift();
+                    cpuData.shift();
+                    memoryData.shift();
+                    networkData.shift();
+                }
+
+                // 添加新数据点
+                timeData.push(timeString);
+                cpuData.push(cpuUsage);
+                memoryData.push(memoryUsage);
+                networkData.push(networkRate);
+
+                // 更新图表
+                myChart.setOption({
+                    xAxis: {
+                        data: timeData
+                    },
+                    series: [
+                        { data: cpuData },
+                        { data: memoryData },
+                        { data: networkData }
+                    ]
+                });
+            })
+            .catch(error => {
+                console.error('更新图表数据失败:', error);
+            });
+    }
+
+    // 初始加载数据
+    updateChartData();
+
+    // 每10秒更新一次图表
+    setInterval(updateChartData, 10000);
+
+    // 响应窗口大小变化
+    window.addEventListener('resize', function() {
+        myChart.resize();
+    });
+}
+</script>
+</body>
+</html>

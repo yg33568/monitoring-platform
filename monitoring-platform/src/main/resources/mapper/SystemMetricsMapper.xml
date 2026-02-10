@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.monitor.monitoring_platform.mapper.SystemMetricsMapper">
+
+    <!-- 查询某个服务的最新一条记录 -->
+    <select id="selectLatestByServiceName" resultType="com.monitor.monitoring_platform.entity.SystemMetrics">
+        SELECT * FROM system_metrics
+        WHERE component_name = #{componentName}
+        ORDER BY timestamp DESC
+        LIMIT 1
+    </select>
+
+    <!-- 查询某个服务最近一段时间的数据 -->
+    <select id="selectRecentMetrics" resultType="com.monitor.monitoring_platform.entity.SystemMetrics">
+        SELECT * FROM system_metrics
+        WHERE component_name = #{componentName}
+        AND timestamp >= #{startTime}
+        ORDER BY timestamp DESC
+    </select>
+
+    <!-- 通用查询方法 - MyBatis-Plus 会自动生成，这里显式定义确保可用 -->
+    <select id="selectList" resultType="com.monitor.monitoring_platform.entity.SystemMetrics">
+        SELECT * FROM system_metrics
+    </select>
+
+    <!-- 通用插入方法 -->
+    <insert id="insert" parameterType="com.monitor.monitoring_platform.entity.SystemMetrics"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_metrics (
+        component_name,
+        cpu_usage,
+        mem_usage,
+        disk_usage,
+        network_rate,
+        process_count,
+        timestamp
+        ) VALUES (
+        #{componentName},
+        #{cpuUsage},
+        #{memUsage},
+        #{diskUsage},
+        #{networkRate},
+        #{processCount},
+        #{timestamp}
+        )
+    </insert>
+
+</mapper>
