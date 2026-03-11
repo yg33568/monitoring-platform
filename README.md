@@ -24,6 +24,7 @@ MySQL 8.0+
 Maven 3.8+
  
 2. 克隆与配置
+```
  git clone https://github.com/yg33568/monitoring-platform.git
  cd monitoring-platform
 修改src/main/resources/application.yml中的数据库连接信息：
@@ -32,13 +33,16 @@ Maven 3.8+
      url: jdbc:mysql://localhost:3306/monitor_db?useSSL=false&serverTimezone=Asia/Shanghai
      username: your_username
      password: your_password
- 
+ ```
 3. 启动项目
+```
  mvn clean install
  mvn spring-boot:run
+```
 访问http://localhost:8080即可使用平台。
 
 📁 项目结构  
+```
 monitoring-platform/
 ├── src/
 │   ├── main/
@@ -72,7 +76,7 @@ monitoring-platform/
 │   │   └── resources/               # 配置文件
 │   └── test/                        # 单元测试
 └── pom.xml                          # Maven 依赖配置
-
+```
  
 📊 核心API示例
        接口路径                    方法             功能 
@@ -82,14 +86,19 @@ monitoring-platform/
  /api/rootcause/analyze            POST     提交异常数据并获取根因分析 
  
 📷 界面预览
+
 智能运维监控大屏界面
 <img width="1105" height="620" alt="image" src="https://github.com/user-attachments/assets/039a32b2-4ba3-4c05-bcc0-f14d45637902" />
+
 组件监控详情界面
 <img width="1104" height="561" alt="image" src="https://github.com/user-attachments/assets/e1cb58cb-762a-4fa0-9523-ae79bec18e0f" />
+
 磁盘空间全景分析
 <img width="955" height="812" alt="image" src="https://github.com/user-attachments/assets/63c9b8bf-f197-437d-8562-697fea0557a6" />
+
 AI智能根因分析界面
 <img width="1106" height="598" alt="image" src="https://github.com/user-attachments/assets/365b3d5e-ffdb-4101-afca-9d405005c40b" />
+
 历史数据查询界面
 <img width="1107" height="584" alt="image" src="https://github.com/user-attachments/assets/3a958c2a-2d29-44f5-9826-e9e05a9324b9" />
  
