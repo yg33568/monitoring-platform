@@ -55,7 +55,6 @@ public class RealSystemDataService {
 
             // 计算CPU使用率
             double cpuUsage = processor.getSystemCpuLoadBetweenTicks(previousTicks) * 100;
-
             // 更新前一次的值
             previousTicks = currentTicks;
             previousTime = currentTime;
