@@ -15,7 +15,7 @@ public class DiskSpaceAnalyzer {
     private static final Logger log = LoggerFactory.getLogger(DiskSpaceAnalyzer.class);
 
     public DiskSpaceAnalysis analyzeDiskSpace(String mountPoint) {
-        System.out.println("=== 🎯 磁盘分析API被调用 ===");
+        System.out.println("=== 磁盘分析API被调用 ===");
         System.out.println("挂载点: " + mountPoint);
 
         DiskSpaceAnalysis analysis = new DiskSpaceAnalysis();
@@ -39,10 +39,10 @@ public class DiskSpaceAnalyzer {
             // 使用模拟数据，避免深度目录扫描
             analysis.setCategories(createMockCategories(analysis.getUsedSpace()));
 
-            System.out.println("✅ 磁盘分析完成: " + mountPoint);
+            System.out.println(" 磁盘分析完成: " + mountPoint);
 
         } catch (Exception e) {
-            System.err.println("❌ 磁盘分析失败: " + e.getMessage());
+            System.err.println("磁盘分析失败: " + e.getMessage());
             throw new RuntimeException("磁盘空间分析失败", e);
         }
 

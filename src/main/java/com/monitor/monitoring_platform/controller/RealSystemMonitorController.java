@@ -41,7 +41,7 @@ public class RealSystemMonitorController {
         Map<String, Object> dashboardData = new HashMap<>();
 
         try {
-            // 获取CPU的最新数据 - 使用新的方法名
+            // 获取CPU的最新数据
             SystemMetrics cpuMetrics = systemMetricsMapper.selectLatestByComponentName("CPU");
             if (cpuMetrics != null) {
                 dashboardData.put("cpuUsage", cpuMetrics.getCpuUsage());
@@ -49,7 +49,7 @@ public class RealSystemMonitorController {
                 dashboardData.put("cpuUsage", 30.0);
             }
 
-            // 获取内存的最新数据 - 使用新的方法名
+            // 获取内存的最新数据
             SystemMetrics memoryMetrics = systemMetricsMapper.selectLatestByComponentName("Memory");
             if (memoryMetrics != null) {
                 dashboardData.put("memoryUsage", memoryMetrics.getMemUsage());
@@ -57,7 +57,7 @@ public class RealSystemMonitorController {
                 dashboardData.put("memoryUsage", 50.0);
             }
 
-            // 获取磁盘数据 - 使用新的方法名
+            // 获取磁盘数据
             SystemMetrics diskMetrics = systemMetricsMapper.selectLatestByComponentName("Disk-C");
             if (diskMetrics != null) {
                 dashboardData.put("diskUsage", diskMetrics.getDiskUsage());
@@ -65,7 +65,7 @@ public class RealSystemMonitorController {
                 dashboardData.put("diskUsage", 150L);
             }
 
-            // 获取网络数据 - 使用新的方法名
+            // 获取网络数据
             SystemMetrics networkMetrics = systemMetricsMapper.selectLatestByComponentName("Network");
             if (networkMetrics != null) {
                 dashboardData.put("networkRate", networkMetrics.getNetworkRate());
@@ -73,7 +73,7 @@ public class RealSystemMonitorController {
                 dashboardData.put("networkRate", 1.5);
             }
 
-            // 获取进程数据 - 使用新的方法名
+            // 获取进程数据
             SystemMetrics processMetrics = systemMetricsMapper.selectLatestByComponentName("Processes");
             if (processMetrics != null) {
                 dashboardData.put("processCount", processMetrics.getProcessCount());
@@ -105,7 +105,7 @@ public class RealSystemMonitorController {
         Map<String, Object> health = new HashMap<>();
 
         try {
-            // 检查各组件健康状态 - 使用新的方法名
+            // 检查各组件健康状态
             SystemMetrics cpu = systemMetricsMapper.selectLatestByComponentName("CPU");
             SystemMetrics memory = systemMetricsMapper.selectLatestByComponentName("Memory");
 

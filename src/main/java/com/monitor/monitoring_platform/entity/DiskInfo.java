@@ -4,11 +4,11 @@ package com.monitor.monitoring_platform.entity;
 
 public class DiskInfo {
     private String name; // 磁盘名称
-    private String mountPoint;// 挂载点 (C:\, D:\, / 等)
+    private String mountPoint;// 挂载点
     private Long totalSpace;       // 总空间 (GB) - 从OSHI获取真实值
     private Long usedSpace;        // 已用空间 (GB)
-    private Long freeSpace;        // 可用空间 (GB) - 新增字段
-    private Double usagePercent;   // 使用百分比 - 根据真实数据计算
+    private Long freeSpace;        // 可用空间 (GB)
+    private Double usagePercent;   // 使用百分比
     private String type; // 文件系统类型
 
     public DiskInfo() {}

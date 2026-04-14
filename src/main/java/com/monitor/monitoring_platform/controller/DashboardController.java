@@ -18,6 +18,7 @@ import java.util.*;
 //@Slf4j
 public class DashboardController {
 
+
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DashboardController.class);
     @Autowired
     private SystemMetricsMapper systemMetricsMapper;
@@ -105,7 +106,7 @@ public class DashboardController {
     }
 
     /**
-     * 创建测试数据（备用方法）
+     * 创建测试数据
      */
     private List<SystemMetrics> createTestMetrics() {
         List<SystemMetrics> metrics = new ArrayList<>();
@@ -123,7 +124,7 @@ public class DashboardController {
     }
 
     /**
-     * 创建动态拓扑结构（自动检测磁盘）
+     * 创建动态拓扑结构
      */
     private Map<String, Object> createDynamicTopology() {
         Map<String, Object> topology = new HashMap<>();

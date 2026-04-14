@@ -81,7 +81,7 @@ public class MetricController {
     }
 
     /**
-     * 生成真实的电脑指标数据（替换原来的模拟数据）
+     * 生成真实的电脑指标数据
      */
     private List<SystemMetrics> generateRealComputerMetrics() {
         List<SystemMetrics> metrics = new ArrayList<>();
@@ -133,7 +133,7 @@ public class MetricController {
     }
 
     /**
-     * 备用数据（当真实数据获取失败时使用）
+     * 备用数据
      */
     private List<SystemMetrics> generateFallbackMetrics() {
         List<SystemMetrics> metrics = new ArrayList<>();
@@ -173,7 +173,7 @@ public class MetricController {
         return metrics;
     }
 
-    @GetMapping("/disks")  // 移除重复的 /api 前缀
+    @GetMapping("/disks")
     public List<DiskInfo> getDiskInfo() {
         return realSystemDataService.getAllDiskUsage();
     }

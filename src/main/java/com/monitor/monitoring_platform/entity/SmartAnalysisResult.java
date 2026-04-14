@@ -3,9 +3,12 @@ package com.monitor.monitoring_platform.entity;
 import java.util.Date;
 import java.util.List;
 
+//存放根因分析结果的
+
 public class SmartAnalysisResult {
     private List<Diagnosis> diagnoses;
     private Date analysisTime;
+    private String aiAnalysis;  //AI 深度分析结果
 
     public SmartAnalysisResult() {
     }
@@ -15,7 +18,7 @@ public class SmartAnalysisResult {
         this.analysisTime = analysisTime;
     }
 
-    // 手动添加 getter 方法
+    // getter/setter
     public List<Diagnosis> getDiagnoses() {
         return diagnoses;
     }
@@ -30,5 +33,13 @@ public class SmartAnalysisResult {
 
     public void setAnalysisTime(Date analysisTime) {
         this.analysisTime = analysisTime;
+    }
+
+    public String getAiAnalysis() {
+        return aiAnalysis;
+    }
+
+    public void setAiAnalysis(String aiAnalysis) {
+        this.aiAnalysis = aiAnalysis;
     }
 }

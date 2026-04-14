@@ -33,7 +33,7 @@ public class DataGeneratorService {
             System.out.println("=== 真实数据生成完成 ===");
 
         } catch (Exception e) {
-            System.err.println("❌ 生成真实数据失败: " + e.getMessage());
+            System.err.println(" 生成真实数据失败: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -61,11 +61,11 @@ public class DataGeneratorService {
             List<DiskInfo> disks = realSystemDataService.getAllDiskUsage();
 
             if (disks.isEmpty()) {
-                System.out.println("⚠️ 未检测到磁盘信息");
+                System.out.println(" 未检测到磁盘信息");
                 return;
             }
 
-            System.out.println("✅ 检测到 " + disks.size() + " 个磁盘分区:");
+            System.out.println("检测到 " + disks.size() + " 个磁盘分区:");
 
             for (int i = 0; i < disks.size(); i++) {
                 DiskInfo disk = disks.get(i);
@@ -79,14 +79,14 @@ public class DataGeneratorService {
                 systemMetricsMapper.insert(diskMetrics);
 
                 // 打印真实的磁盘信息
-                System.out.println("   💾 " + disk.getMountPoint() + ": " +
+                System.out.println("   " + disk.getMountPoint() + ": " +
                         disk.getUsedSpace() + "GB/" + disk.getTotalSpace() + "GB (" +
                         String.format("%.1f", disk.getUsagePercent()) + "%) - 可用: " +
                         disk.getFreeSpace() + "GB");
             }
 
         } catch (Exception e) {
-            System.err.println("❌ 生成磁盘数据失败: " + e.getMessage());
+            System.err.println("生成磁盘数据失败: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -97,16 +97,16 @@ public class DataGeneratorService {
     private void logComponentData(String component, SystemMetrics metrics) {
         switch (component) {
             case "CPU":
-                System.out.println("✅ CPU: " + metrics.getCpuUsage() + "%");
+                System.out.println("CPU: " + metrics.getCpuUsage() + "%");
                 break;
             case "Memory":
-                System.out.println("✅ 内存: " + metrics.getMemUsage() + "%");
+                System.out.println("内存: " + metrics.getMemUsage() + "%");
                 break;
             case "Network":
-                System.out.println("✅ 网络: " + metrics.getNetworkRate() + "MB/s");
+                System.out.println("网络: " + metrics.getNetworkRate() + "MB/s");
                 break;
             case "Processes":
-                System.out.println("✅ 进程: " + metrics.getProcessCount() + "个");
+                System.out.println("进程: " + metrics.getProcessCount() + "个");
                 break;
         }
     }

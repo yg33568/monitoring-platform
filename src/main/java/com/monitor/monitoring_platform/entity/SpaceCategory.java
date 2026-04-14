@@ -6,7 +6,7 @@ import java.util.List;
 @Data
 public class SpaceCategory {
     private String name;        // "系统文件"
-    private String icon;        // "💻"
+    private String icon;
     private long size;          // 大小(GB)
     private double percent;     // 占比百分比
     private List<SpaceItem> items; // 子项列表

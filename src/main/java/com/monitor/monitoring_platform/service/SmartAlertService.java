@@ -1,11 +1,15 @@
 package com.monitor.monitoring_platform.service;
 
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class SmartAlertService {
+
+    @Resource
+    private AiSmartService aiSmartService;
 
     // 存储各服务的动态基线（简化版：手动设置初始值）
     private Map<String, ServiceBaseline> serviceBaselines = new HashMap<>();
@@ -67,13 +71,23 @@ public class SmartAlertService {
             result.setNeedAlert(true);
             result.setAlertLevel("WARNING");
             result.setMessage(generateAlertMessage(serviceName, isCpuAlert, isMemAlert, isResponseAlert));
-            result.setSuggestions("建议：1. 检查服务负载 2. 查看依赖服务状态 3. 联系运维人员");
+
+            // ======================= 【AI 核心代码】 =======================
+            String prompt = String.format(
+                    "你是系统运维专家。服务名：%s，CPU使用率：%.1f%%，内存使用率：%.1f%%，响应时间：%dms。请给出简洁的优化建议。",
+                    serviceName, cpuUsage, memUsage, responseTimeMs
+            );
+            String aiSuggestion = aiSmartService.askAi(prompt);
+            result.setSuggestions(aiSuggestion);
+            // ===============================================================
 
             System.out.println("🚨 智能告警触发: " + result.getMessage());
+            System.out.println("🤖 AI 建议: " + aiSuggestion);
         } else {
             result.setNeedAlert(false);
             result.setAlertLevel("NORMAL");
             result.setMessage("服务运行正常");
+            result.setSuggestions("无");
         }
 
         return result;
@@ -122,7 +136,6 @@ public class SmartAlertService {
         private Double avgResponse; // 平均响应时间
         private Double stdResponse; // 响应时间标准差
 
-        // getter 和 setter 方法
         public Double getAvgCpu() { return avgCpu; }
         public void setAvgCpu(Double avgCpu) { this.avgCpu = avgCpu; }
         public Double getStdCpu() { return stdCpu; }
@@ -146,7 +159,6 @@ public class SmartAlertService {
         private String message;
         private String suggestions;
 
-        // getter 和 setter 方法
         public boolean isNeedAlert() { return needAlert; }
         public void setNeedAlert(boolean needAlert) { this.needAlert = needAlert; }
         public String getAlertLevel() { return alertLevel; }

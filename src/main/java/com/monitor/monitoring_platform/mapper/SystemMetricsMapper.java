@@ -31,7 +31,7 @@ public interface SystemMetricsMapper extends BaseMapper<SystemMetrics> {
     List<SystemMetrics> selectLatestMetricsForAllComponents();
 
     /**
-     * 查询最近的磁盘数据（用于拓扑图）
+     * 查询最近的磁盘数据
      */
     @Select("SELECT DISTINCT component_name, disk_usage, timestamp " +
             "FROM system_metrics " +

@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class SpaceItem {
     private String name;        // "Windows系统"
-    private String path;        // "Windows" (实际路径)
+    private String path;        // "Windows"
     private long size;          // 大小(GB)
     private String description; // 描述信息
 

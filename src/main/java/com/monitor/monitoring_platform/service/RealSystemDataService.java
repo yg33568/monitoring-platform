@@ -164,11 +164,11 @@ public class RealSystemDataService {
                 mount.contains("/dev") ||          // 设备文件系统
                 mount.contains("/snap") ||         // Snap包系统
                 totalSpace == 0 ||                 // 总空间为0
-                totalSpace < (100 * 1024 * 1024);  // 小于100MB的磁盘（可能是虚拟磁盘）
+                totalSpace < (100 * 1024 * 1024);  // 小于100MB的磁盘
     }
 
     /**
-     * 备用磁盘信息（当获取失败时使用真实的基础信息）
+     * 备用磁盘信息
      */
     private List<DiskInfo> getFallbackDiskInfo() {
         List<DiskInfo> fallback = new ArrayList<>();
@@ -231,7 +231,7 @@ public class RealSystemDataService {
                 return 0.1;
             }
 
-            // 找到活动的网络接口（通过数据量判断）
+            // 找到活动的网络接口
             NetworkIF activeNetwork = null;
             long maxBytes = 0;
 
@@ -239,7 +239,7 @@ public class RealSystemDataService {
                 net.updateAttributes();
                 long bytesRecv = net.getBytesRecv();
 
-                // 选择接收数据最多的网络接口（通常是最活跃的）
+                // 选择接收数据最多的网络接口
                 if (bytesRecv > maxBytes) {
                     maxBytes = bytesRecv;
                     activeNetwork = net;
