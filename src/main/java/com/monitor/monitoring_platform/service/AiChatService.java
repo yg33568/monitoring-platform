@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -16,38 +17,35 @@ public class AiChatService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    private static final String REDIS_HISTORY_KEY = "chat:history:";
+    private static final String REDIS_HISTORY_KEY = "chat:history:";  // Redis 中存历史的 key 前缀
     private static final int EXPIRE_HOURS = 24;  // 保存24小时
 
+    //加入历史记录
     public String chat(String sessionId, String userMessage, Map<String, Object> metrics) {
         // 构建系统上下文
         String systemContext = buildSystemContext(metrics);
-
         // 从 Redis 获取历史对话
         String history = getHistoryFromRedis(sessionId);
 
-        // 构建完整 prompt
         String prompt = String.format(
                 "%s\n\n【历史对话】\n%s\n\n【用户问题】\n%s\n\n【回复要求】\n" +
-                        "1. 结合历史对话回答问题，要连贯\n" +
-                        "2. 用自然、流畅的中文回复\n" +
-                        "3. 不要使用任何 Markdown 格式符号\n" +
-                        "4. 回复要简洁实用，控制在150字以内",
+                        "1. 如果用户问的是电脑/系统/监控相关的问题，结合【系统状态】回答\n" +
+                        "2. 如果用户问的是闲聊（你好、天气、新闻等），正常聊天，不要说电脑的事\n" +
+                        "3. 不要主动提系统状态，除非用户问\n" +
+                        "4. 用自然、流畅的中文回复",
                 systemContext, history, userMessage
         );
 
         // 调用 AI
         String aiResponse = aiSmartService.askAi(prompt);
-
         // 保存到 Redis
         saveToRedis(sessionId, userMessage, aiResponse);
-
         return aiResponse;
     }
 
+    //每次重新对话，不加入历史记录
     public String getSystemDiagnosis(String sessionId, Map<String, Object> metrics) {
         String systemContext = buildSystemContext(metrics);
-
         String prompt = String.format(
                 "%s\n\n请对当前系统进行全面诊断，包括：\n" +
                         "1. 系统健康度评估（给出分数0-100）\n" +
@@ -103,7 +101,6 @@ public class AiChatService {
 
         Double cpu = 0.0;
         Double memory = 0.0;
-        Double disk = 0.0;
 
         try {
             if (metrics.get("cpu") != null) {
@@ -112,20 +109,40 @@ public class AiChatService {
             if (metrics.get("memory") != null) {
                 memory = Double.valueOf(metrics.get("memory").toString());
             }
-            if (metrics.get("disk") != null) {
-                disk = Double.valueOf(metrics.get("disk").toString());
-            }
-        } catch (Exception e) {
+        } catch (Exception e) {}
 
+        // 构建磁盘信息
+        StringBuilder diskInfo = new StringBuilder();
+        Object disksObj = metrics.get("disks");
+        if (disksObj instanceof List) {
+            List<?> disks = (List<?>) disksObj;
+            for (Object disk : disks) {
+                if (disk instanceof Map) {
+                    Map<?, ?> diskMap = (Map<?, ?>) disk;
+                    String mountPoint = diskMap.get("mountPoint").toString();
+                    Object total = diskMap.get("totalSpace");
+                    Object used = diskMap.get("usedSpace");
+                    Object free = diskMap.get("freeSpace");
+                    Object percent = diskMap.get("usagePercent");
+
+                    if (total != null && used != null) {
+                        diskInfo.append(String.format("\n  %s: %dGB/%dGB (%.1f%%)，剩余 %dGB",
+                                mountPoint,
+                                ((Number) used).longValue(),
+                                ((Number) total).longValue(),
+                                ((Number) percent).doubleValue(),
+                                ((Number) free).longValue()));
+                    }
+                }
+            }
         }
 
         String cpuLevel = cpu > 80 ? "过高" : (cpu > 60 ? "偏高" : "正常");
         String memLevel = memory > 85 ? "过高" : (memory > 70 ? "偏高" : "正常");
-        String diskLevel = disk > 85 ? "过高" : (disk > 70 ? "偏高" : "正常");
 
         return String.format(
-                "【当前系统状态】\nCPU: %.1f%% (%s) | 内存: %.1f%% (%s) | 磁盘: %.1f%% (%s)",
-                cpu, cpuLevel, memory, memLevel, disk, diskLevel
+                "【当前系统状态】\nCPU: %.1f%% (%s) | 内存: %.1f%% (%s)\n【磁盘状态】%s",
+                cpu, cpuLevel, memory, memLevel, diskInfo.toString()
         );
     }
 }

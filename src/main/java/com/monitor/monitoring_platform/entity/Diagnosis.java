@@ -1,5 +1,5 @@
 package com.monitor.monitoring_platform.entity;
-
+//根因分析中检测到的单个问题
 public class Diagnosis {
     private String type;        // 问题类型
     private Integer confidence; // 置信度 0-100

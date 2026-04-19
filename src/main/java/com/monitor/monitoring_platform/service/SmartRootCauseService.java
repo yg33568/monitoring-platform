@@ -15,6 +15,7 @@ import java.util.List;
 @Service
 public class SmartRootCauseService {
 
+    //创建日志对象，用来打印日志
     private static final Logger log = LoggerFactory.getLogger(SmartRootCauseService.class);
 
     @Autowired
@@ -114,7 +115,7 @@ public class SmartRootCauseService {
         }
     }
 
-    // 新增：计算 CPU 增长率
+    // 计算 CPU 增长率
     private double calculateCPUGrowthRate(List<SystemMetrics> history) {
         if (history.size() < 2) return 0;
         double first = history.get(0).getCpuUsage();
@@ -122,7 +123,6 @@ public class SmartRootCauseService {
         return last - first;
     }
 
-    // 以下是原有的计算方法...
     private double calculateMemoryGrowthRate(List<SystemMetrics> history) {
         if (history.size() < 2) return 0;
         double first = history.get(0).getMemUsage();
@@ -142,9 +142,7 @@ public class SmartRootCauseService {
         return history.stream().mapToDouble(m -> m.getDiskUsage() != null ? m.getDiskUsage() : 0).average().orElse(0);
     }
 
-    // 原有的检测方法保持不变...
     private Diagnosis detectMemoryLeak(SystemMetrics current, List<SystemMetrics> history) {
-        // ... 保持原有代码不变
         if (history.size() < 3) {
             return new Diagnosis("内存分析", 0, "历史数据不足");
         }
@@ -169,7 +167,6 @@ public class SmartRootCauseService {
     }
 
     private Diagnosis detectCPUIssue(SystemMetrics current, List<SystemMetrics> history) {
-        // ... 保持原有代码不变
         double avgCpu = calculateAverageCPU(history);
         double cpuVolatility = calculateCPUVolatility(history);
         int confidence = 0;
@@ -191,7 +188,6 @@ public class SmartRootCauseService {
     }
 
     private Diagnosis detectDiskIssue(SystemMetrics current, List<SystemMetrics> history) {
-        // ... 保持原有代码不变
         double avgDisk = calculateAverageDisk(history);
         int confidence = 0;
         String evidence = "";

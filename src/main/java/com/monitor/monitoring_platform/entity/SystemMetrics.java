@@ -1,4 +1,4 @@
-//系统指标实体
+//系统指标实体，对应数据库表 system_metrics，用来存储每一次采集的监控数据
 package com.monitor.monitoring_platform.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -22,7 +22,6 @@ public class SystemMetrics {
     private Integer responseTimeMS; // 进程数量
     private LocalDateTime timestamp;// 时间戳
 
-    // 必须添加 getter 和 setter 方法
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

@@ -1,5 +1,5 @@
 package com.monitor.monitoring_platform.entity;
-
+//磁盘空间的分类
 import lombok.Data;
 import java.util.List;
 

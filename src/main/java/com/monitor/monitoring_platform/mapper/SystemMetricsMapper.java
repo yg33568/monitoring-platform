@@ -43,4 +43,5 @@ public interface SystemMetricsMapper extends BaseMapper<SystemMetrics> {
     // 添加获取最近数据的方法
     @Select("SELECT * FROM system_metrics ORDER BY timestamp DESC LIMIT #{count}")
     List<SystemMetrics> selectRecentMetrics(int count);
+
 }

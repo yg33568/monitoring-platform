@@ -1,5 +1,5 @@
 package com.monitor.monitoring_platform.entity;
-
+//磁盘空间分析---磁盘总信息 + 多个分类
 import lombok.Data;
 import java.util.Date;
 import java.util.List;
@@ -17,7 +17,6 @@ public class DiskSpaceAnalysis {
         this.analyzeTime = new Date();
     }
 
-    // 手动添加setter方法（如果Lombok不工作）
     public void setMountPoint(String mountPoint) {
         this.mountPoint = mountPoint;
     }

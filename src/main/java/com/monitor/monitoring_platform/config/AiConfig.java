@@ -8,9 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class AiConfig {
@@ -32,7 +29,7 @@ public class AiConfig {
         return DashScopeChatModel.builder()
                 .dashScopeApi(dashScopeApi)
                 .defaultOptions(DashScopeChatOptions.builder()
-                        .withModel("qwen-plus")  // 可选:  qwen-max, deepseek-v3
+                        .withModel("qwen-plus")
                         .withTemperature(0.7)
                         .build())
                 .build();
@@ -45,20 +42,5 @@ public class AiConfig {
                 .builder(chatModel)
                 .defaultSystem("你是一个专业的，热心的智能助手，你的名字叫飞飞，要以飞飞的身份和语气回答问题")
                 .build();
-    }
-
-    @Configuration
-    public class RedisConfig {
-
-        @Bean
-        public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
-            RedisTemplate<String, String> template = new RedisTemplate<>();
-            template.setConnectionFactory(connectionFactory);
-            template.setKeySerializer(new StringRedisSerializer());
-            template.setValueSerializer(new StringRedisSerializer());
-            template.setHashKeySerializer(new StringRedisSerializer());
-            template.setHashValueSerializer(new StringRedisSerializer());
-            return template;
-        }
     }
 }

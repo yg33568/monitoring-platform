@@ -249,7 +249,7 @@ public class DiskSpaceAnalyzer {
         File systemCacheDir = new File(mountPoint, "Windows/Temp");
         long systemCacheSize = getDirectorySizeGB(systemCacheDir);
 
-        // 加上预取文件等
+        // 预取文件
         File prefetchDir = new File(mountPoint, "Windows/Prefetch");
         systemCacheSize += getDirectorySizeGB(prefetchDir);
 

@@ -27,7 +27,7 @@ public class DataGeneratorService {
             // 生成核心组件的真实数据
             generateCoreComponents();
 
-            // 生成磁盘数据（动态检测所有磁盘）
+            // 生成磁盘数据
             generateDiskMetrics();
 
             System.out.println("=== 真实数据生成完成 ===");

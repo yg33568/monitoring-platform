@@ -3,12 +3,12 @@ package com.monitor.monitoring_platform.entity;
 import java.util.Date;
 import java.util.List;
 
-//存放根因分析结果的
+//存放ai根因分析结果的
 
 public class SmartAnalysisResult {
     private List<Diagnosis> diagnoses;
     private Date analysisTime;
-    private String aiAnalysis;  //AI 深度分析结果
+    private String aiAnalysis;
 
     public SmartAnalysisResult() {
     }

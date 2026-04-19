@@ -11,7 +11,7 @@ public class AiSmartService {
     private ChatClient.Builder chatClientBuilder;
 
     /**
-     * 唯一方法：问 AI 任何问题，返回清理后的答案
+     * 问 AI 任何问题，返回清理后的答案
      */
     public String askAi(String prompt) {
         try {

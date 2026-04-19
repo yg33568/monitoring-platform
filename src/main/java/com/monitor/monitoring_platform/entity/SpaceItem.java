@@ -1,4 +1,12 @@
 package com.monitor.monitoring_platform.entity;
+/**
+ * DiskSpaceAnalysis (整份报告)
+ *     └── SpaceCategory (分类：系统文件)
+ *             └── SpaceItem (子项：Windows系统)  ← 就是这个
+ *             └── SpaceItem (子项：Program Files)
+ *             └── SpaceItem (子项：系统缓存)
+ *             但是好像未被使用
+ */
 
 import lombok.Data;
 
@@ -9,7 +17,6 @@ public class SpaceItem {
     private long size;          // 大小(GB)
     private String description; // 描述信息
 
-    // 手动添加setter方法
     public void setName(String name) {
         this.name = name;
     }

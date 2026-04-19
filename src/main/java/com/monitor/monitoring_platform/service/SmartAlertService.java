@@ -11,131 +11,153 @@ public class SmartAlertService {
     @Resource
     private AiSmartService aiSmartService;
 
-    // 存储各服务的动态基线（简化版：手动设置初始值）
-    private Map<String, ServiceBaseline> serviceBaselines = new HashMap<>();
+    private Map<String, ServiceBaseline> componentBaselines = new HashMap<>();
 
     public SmartAlertService() {
-        // 初始化一些示例服务的基线数据
         initializeBaselines();
     }
 
     private void initializeBaselines() {
-        // 用户服务的初始基线
-        ServiceBaseline userServiceBaseline = new ServiceBaseline();
-        userServiceBaseline.setAvgCpu(45.0);
-        userServiceBaseline.setStdCpu(15.0);
-        userServiceBaseline.setAvgMem(65.0);
-        userServiceBaseline.setStdMem(10.0);
-        userServiceBaseline.setAvgResponse(120.0);
-        userServiceBaseline.setStdResponse(30.0);
-        serviceBaselines.put("用户服务", userServiceBaseline);
+        // CPU 基线
+        ServiceBaseline cpuBaseline = new ServiceBaseline();
+        cpuBaseline.setAvgCpu(45.0);
+        cpuBaseline.setStdCpu(15.0);
+        componentBaselines.put("CPU", cpuBaseline);
 
-        // 订单服务的初始基线
-        ServiceBaseline orderServiceBaseline = new ServiceBaseline();
-        orderServiceBaseline.setAvgCpu(50.0);
-        orderServiceBaseline.setStdCpu(20.0);
-        orderServiceBaseline.setAvgMem(70.0);
-        orderServiceBaseline.setStdMem(15.0);
-        orderServiceBaseline.setAvgResponse(150.0);
-        orderServiceBaseline.setStdResponse(50.0);
-        serviceBaselines.put("订单服务", orderServiceBaseline);
+        // 内存 基线
+        ServiceBaseline memoryBaseline = new ServiceBaseline();
+        memoryBaseline.setAvgMem(65.0);
+        memoryBaseline.setStdMem(10.0);
+        componentBaselines.put("Memory", memoryBaseline);
+
+        // 磁盘 基线（使用量 GB）
+        ServiceBaseline diskBaseline = new ServiceBaseline();
+        diskBaseline.setAvgDisk(120.0);   // 平均使用 120GB
+        diskBaseline.setStdDisk(30.0);    // 标准差 30GB
+        componentBaselines.put("Disk", diskBaseline);
+
+        // 网络 基线（MB/s）
+        ServiceBaseline networkBaseline = new ServiceBaseline();
+        networkBaseline.setAvgNetwork(2.0);
+        networkBaseline.setStdNetwork(1.0);
+        componentBaselines.put("Network", networkBaseline);
+
+        // 进程 基线（个数）
+        ServiceBaseline processBaseline = new ServiceBaseline();
+        processBaseline.setAvgProcess(150.0);
+        processBaseline.setStdProcess(30.0);
+        componentBaselines.put("Processes", processBaseline);
     }
 
-    /**
-     * 智能检查指标：基于动态基线，而非固定阈值
-     */
-    public AlertResult checkWithSmartAlert(String serviceName, Double cpuUsage, Double memUsage, Integer responseTimeMs) {
+    public AlertResult checkWithSmartAlert(
+            String componentName,
+            Double cpuUsage,
+            Double memUsage,
+            Long diskUsage,
+            Double networkRate,
+            Integer processCount,
+            Integer responseTimeMs) {
+
         AlertResult result = new AlertResult();
 
-        // 获取或初始化该服务的基线数据
-        ServiceBaseline baseline = serviceBaselines.get(serviceName);
+        ServiceBaseline baseline = componentBaselines.get(componentName);
         if (baseline == null) {
-            // 如果服务不存在，创建新的基线
+            // 未知组件，创建默认基线
             baseline = new ServiceBaseline();
-            baseline.setAvgCpu(50.0); // 默认值
-            baseline.setStdCpu(20.0);
-            baseline.setAvgMem(60.0);
-            baseline.setStdMem(15.0);
-            baseline.setAvgResponse(100.0);
-            baseline.setStdResponse(25.0);
-            serviceBaselines.put(serviceName, baseline);
+            componentBaselines.put(componentName, baseline);
         }
 
-        // 智能判断（核心逻辑）
-        boolean isCpuAlert = checkMetricAlert(cpuUsage, baseline.getAvgCpu(), baseline.getStdCpu(), "CPU");
-        boolean isMemAlert = checkMetricAlert(memUsage, baseline.getAvgMem(), baseline.getStdMem(), "内存");
-        boolean isResponseAlert = checkMetricAlert(responseTimeMs.doubleValue(), baseline.getAvgResponse(), baseline.getStdResponse(), "响应时间");
+        boolean isCpuAlert = false;
+        boolean isMemAlert = false;
+        boolean isDiskAlert = false;
+        boolean isNetworkAlert = false;
+        boolean isProcessAlert = false;
+        boolean isResponseAlert = false;
 
-        // 构建返回结果
-        if (isCpuAlert || isMemAlert || isResponseAlert) {
+        // 根据不同组件类型检测
+        if ("CPU".equals(componentName) && cpuUsage != null) {
+            isCpuAlert = checkMetricAlert(cpuUsage, baseline.getAvgCpu(), baseline.getStdCpu(), "CPU");
+        }
+        if ("Memory".equals(componentName) && memUsage != null) {
+            isMemAlert = checkMetricAlert(memUsage, baseline.getAvgMem(), baseline.getStdMem(), "内存");
+        }
+        if (componentName.startsWith("Disk") && diskUsage != null) {
+            isDiskAlert = checkMetricAlert((double) diskUsage, baseline.getAvgDisk(), baseline.getStdDisk(), "磁盘");
+        }
+        if ("Network".equals(componentName) && networkRate != null) {
+            isNetworkAlert = checkMetricAlert(networkRate, baseline.getAvgNetwork(), baseline.getStdNetwork(), "网络");
+        }
+        if ("Processes".equals(componentName) && processCount != null) {
+            isProcessAlert = checkMetricAlert((double) processCount, baseline.getAvgProcess(), baseline.getStdProcess(), "进程");
+        }
+        if (responseTimeMs != null) {
+            isResponseAlert = checkMetricAlert((double) responseTimeMs, baseline.getAvgResponse(), baseline.getStdResponse(), "响应时间");
+        }
+
+        if (isCpuAlert || isMemAlert || isDiskAlert || isNetworkAlert || isProcessAlert || isResponseAlert) {
             result.setNeedAlert(true);
             result.setAlertLevel("WARNING");
-            result.setMessage(generateAlertMessage(serviceName, isCpuAlert, isMemAlert, isResponseAlert));
+            result.setMessage(generateAlertMessage(componentName, isCpuAlert, isMemAlert, isDiskAlert, isNetworkAlert, isProcessAlert, isResponseAlert));
 
-            // ======================= 【AI 核心代码】 =======================
+            // AI 建议
             String prompt = String.format(
-                    "你是系统运维专家。服务名：%s，CPU使用率：%.1f%%，内存使用率：%.1f%%，响应时间：%dms。请给出简洁的优化建议。",
-                    serviceName, cpuUsage, memUsage, responseTimeMs
+                    "你是系统运维专家。组件：%s，CPU使用率：%.1f%%，内存使用率：%.1f%%，磁盘使用：%dGB，网络速率：%.1fMB/s，进程数：%d个，响应时间：%dms。请给出简洁的优化建议。",
+                    componentName,
+                    cpuUsage != null ? cpuUsage : 0,
+                    memUsage != null ? memUsage : 0,
+                    diskUsage != null ? diskUsage : 0,
+                    networkRate != null ? networkRate : 0,
+                    processCount != null ? processCount : 0,
+                    responseTimeMs != null ? responseTimeMs : 0
             );
             String aiSuggestion = aiSmartService.askAi(prompt);
             result.setSuggestions(aiSuggestion);
-            // ===============================================================
 
             System.out.println("🚨 智能告警触发: " + result.getMessage());
             System.out.println("🤖 AI 建议: " + aiSuggestion);
         } else {
             result.setNeedAlert(false);
             result.setAlertLevel("NORMAL");
-            result.setMessage("服务运行正常");
+            result.setMessage("组件运行正常");
             result.setSuggestions("无");
         }
 
         return result;
     }
 
-    /**
-     * 核心算法：基于动态阈值检测
-     * 如果当前值 > 平均值 + 1.5倍标准差，则认为异常
-     */
     private boolean checkMetricAlert(Double currentValue, Double avg, Double std, String metricName) {
-        if (avg == null || std == null) return false;
-
+        if (avg == null || std == null || currentValue == null) return false;
         double threshold = avg + 1.5 * std;
         boolean isAlert = currentValue > threshold;
-
         if (isAlert) {
-            System.out.printf("🔔 %s异常检测：当前值%.2f > 阈值%.2f (avg=%.2f, std=%.2f)%n",
+            System.out.printf("🔔 %s异常：当前%.1f > 阈值%.1f (平均%.1f, 标准差%.1f)%n",
                     metricName, currentValue, threshold, avg, std);
         }
-
         return isAlert;
     }
 
-    /**
-     * 生成告警消息
-     */
-    private String generateAlertMessage(String serviceName, boolean cpuAlert, boolean memAlert, boolean responseAlert) {
+    private String generateAlertMessage(String componentName, boolean cpuAlert, boolean memAlert, boolean diskAlert, boolean networkAlert, boolean processAlert, boolean responseAlert) {
         StringBuilder message = new StringBuilder();
-        message.append("服务【").append(serviceName).append("】检测到异常：");
-
+        message.append("组件【").append(componentName).append("】检测到异常：");
         if (cpuAlert) message.append(" CPU使用率超出正常范围");
         if (memAlert) message.append(" 内存使用率超出正常范围");
+        if (diskAlert) message.append(" 磁盘使用量超出正常范围");
+        if (networkAlert) message.append(" 网络速率超出正常范围");
+        if (processAlert) message.append(" 进程数量超出正常范围");
         if (responseAlert) message.append(" 响应时间超出正常范围");
-
         return message.toString();
     }
 
-    /**
-     * 内部类：服务基线数据
-     */
+    // 内部类：组件基线数据
     public static class ServiceBaseline {
-        private Double avgCpu;      // CPU平均使用率
-        private Double stdCpu;      // CPU标准差
-        private Double avgMem;      // 内存平均使用率
-        private Double stdMem;      // 内存标准差
-        private Double avgResponse; // 平均响应时间
-        private Double stdResponse; // 响应时间标准差
-
+        private Double avgCpu; private Double stdCpu;
+        private Double avgMem; private Double stdMem;
+        private Double avgDisk; private Double stdDisk;
+        private Double avgNetwork; private Double stdNetwork;
+        private Double avgProcess; private Double stdProcess;
+        private Double avgResponse; private Double stdResponse;  // ← 添加这行
+        private Double avgDiskUsage; private Double stdDiskUsage;  // ← 添加这行（如果还需要）
+        // getter/setter...
         public Double getAvgCpu() { return avgCpu; }
         public void setAvgCpu(Double avgCpu) { this.avgCpu = avgCpu; }
         public Double getStdCpu() { return stdCpu; }
@@ -144,21 +166,29 @@ public class SmartAlertService {
         public void setAvgMem(Double avgMem) { this.avgMem = avgMem; }
         public Double getStdMem() { return stdMem; }
         public void setStdMem(Double stdMem) { this.stdMem = stdMem; }
-        public Double getAvgResponse() { return avgResponse; }
-        public void setAvgResponse(Double avgResponse) { this.avgResponse = avgResponse; }
-        public Double getStdResponse() { return stdResponse; }
-        public void setStdResponse(Double stdResponse) { this.stdResponse = stdResponse; }
+        public Double getAvgDisk() { return avgDisk; }
+        public void setAvgDisk(Double avgDisk) { this.avgDisk = avgDisk; }
+        public Double getStdDisk() { return stdDisk; }
+        public void setStdDisk(Double stdDisk) { this.stdDisk = stdDisk; }
+        public Double getAvgNetwork() { return avgNetwork; }
+        public void setAvgNetwork(Double avgNetwork) { this.avgNetwork = avgNetwork; }
+        public Double getStdNetwork() { return stdNetwork; }
+        public void setStdNetwork(Double stdNetwork) { this.stdNetwork = stdNetwork; }
+        public Double getAvgProcess() { return avgProcess; }
+        public void setAvgProcess(Double avgProcess) { this.avgProcess = avgProcess; }
+        public Double getStdProcess() { return stdProcess; }
+        public void setStdProcess(Double stdProcess) { this.stdProcess = stdProcess; }
+        public Double getAvgResponse() { return avgResponse; }      // ← 添加
+        public void setAvgResponse(Double avgResponse) { this.avgResponse = avgResponse; }  // ← 添加
+        public Double getStdResponse() { return stdResponse; }      // ← 添加
+        public void setStdResponse(Double stdResponse) { this.stdResponse = stdResponse; }  // ← 添加
     }
 
-    /**
-     * 告警结果封装类
-     */
     public static class AlertResult {
         private boolean needAlert;
         private String alertLevel;
         private String message;
         private String suggestions;
-
         public boolean isNeedAlert() { return needAlert; }
         public void setNeedAlert(boolean needAlert) { this.needAlert = needAlert; }
         public String getAlertLevel() { return alertLevel; }

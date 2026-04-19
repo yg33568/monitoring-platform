@@ -35,7 +35,7 @@ public class AiChatController {
             Map<String, Object> metrics = (Map<String, Object>) request.get("metrics");
 
             String reply = aiChatService.chat(sessionId, message, metrics);
-
+            //success/reply是前端的参数名
             response.put("success", true);
             response.put("reply", reply);
         } catch (Exception e) {
@@ -49,6 +49,7 @@ public class AiChatController {
     /**
      * 系统诊断接口
      * 和 /chat 类似，只是调用了 getSystemDiagnosis 方法，专门做系统全面诊断。
+     * @RequestBody 把前端传过来的 JSON 数据，自动转换成 Java 对象。
      */
     @PostMapping("/diagnose")
     public Map<String, Object> diagnose(@RequestBody Map<String, Object> request) {

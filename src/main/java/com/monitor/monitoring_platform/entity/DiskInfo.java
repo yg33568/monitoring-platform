@@ -1,11 +1,10 @@
 //磁盘信息实体
-
 package com.monitor.monitoring_platform.entity;
 
 public class DiskInfo {
     private String name; // 磁盘名称
     private String mountPoint;// 挂载点
-    private Long totalSpace;       // 总空间 (GB) - 从OSHI获取真实值
+    private Long totalSpace;       // 总空间 (GB)-从OSHI获取真实值
     private Long usedSpace;        // 已用空间 (GB)
     private Long freeSpace;        // 可用空间 (GB)
     private Double usagePercent;   // 使用百分比

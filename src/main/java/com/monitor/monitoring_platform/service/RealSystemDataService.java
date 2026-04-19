@@ -22,11 +22,15 @@ import java.util.List;
 
 @Service
 public class RealSystemDataService {
-
+    //创建OSHI的系统信息对象
     private final SystemInfo systemInfo = new SystemInfo();
+    //获取硬件层对象，利用它访问cpu、内存等
     private final HardwareAbstractionLayer hardware = systemInfo.getHardware();
+    //从硬件层获取处理器对象，利用它访问cpu详细信息（使用率等）
     private final CentralProcessor processor = hardware.getProcessor();
+    //从硬件层获取内存对象，利用它访问内存详细信息（总大小，可用大小等）
     private final GlobalMemory memory = hardware.getMemory();
+    //从硬件层获取操作系统对象，利用它获取进程、文件系统信息
     private final OperatingSystem os = systemInfo.getOperatingSystem();
 
     // 用于CPU使用率计算
@@ -89,7 +93,7 @@ public class RealSystemDataService {
      */
     public List<DiskInfo> getAllDiskUsage() {
         List<DiskInfo> diskList = new ArrayList<>();
-
+        //OSHI库获取所有磁盘分区
         try {
             FileSystem fileSystem = os.getFileSystem();
             List<OSFileStore> fileStores = fileSystem.getFileStores();
@@ -320,8 +324,6 @@ public class RealSystemDataService {
                 case "Processes":
                     metrics.setProcessCount(getRealProcessCount());
                     break;
-                // 完全删除 Disk-C 和 Disk-D 分支
-                // 磁盘数据现在通过专门的 /api/disks 接口获取
             }
         } catch (Exception e) {
             System.err.println("获取 " + componentName + " 数据失败: " + e.getMessage());
@@ -332,17 +334,20 @@ public class RealSystemDataService {
     /**
      * 获取系统信息摘要
      */
+
     public String getSystemSummary() {
         try {
+            String osFamily = os.getFamily();
+            String processorName = processor.getProcessorIdentifier().getName();
             long totalMemory = memory.getTotal();
             double totalGB = totalMemory / (1024.0 * 1024.0 * 1024.0);
 
-            return String.format("系统: %s %s | 处理器: %s | 内存: %.1fGB",
-                    os.getFamily(),
-                    os.getVersionInfo().getVersion(),
-                    processor.getProcessorIdentifier().getName(),
+            return String.format("系统: %s | 处理器: %s | 内存: %.1fGB",
+                    osFamily != null ? osFamily : "未知",
+                    processorName != null ? processorName : "未知",
                     totalGB);
         } catch (Exception e) {
+            e.printStackTrace();
             return "无法获取系统信息";
         }
     }
