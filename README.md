@@ -103,6 +103,7 @@ monitoring-platform/
 ```
  
 📊 核心API示例
+```
        接口路径                    方法             功能 
  /api/monitor/real-time            GET        获取实时系统指标 
  /api/monitor/diagnose/memory      GET        执行内存问题诊断 
@@ -110,7 +111,8 @@ monitoring-platform/
  /api/rootcause/analyze            POST     提交异常数据并获取根因分析 
  /api/system/real-metrics          GET        获取实时监控数据
  /api/ai/chat                      POST          AI 对话
- 
+ ```
+
 📷 界面预览
 
 智能运维监控大屏界面
