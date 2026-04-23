@@ -1,4 +1,6 @@
 🖥️ Smart Monitoring Platform（智能电脑监控平台）
+
+一个能“看懂”你电脑状态的智能监控平台 —— 实时采集硬件数据，AI辅助诊断系统异常。
  
 一个基于Spring Boot的轻量级电脑硬件监控与诊断平台，支持实时监控CPU、内存、磁盘、网速等系统指标，并提供智能内存问题诊断与根因分析功能。
 
@@ -6,22 +8,28 @@
 实时系统监控：采集CPU使用率、内存占用、磁盘空间、网络上下行速度等关键指标
 智能内存诊断：自动检测高内存占用、潜在内存泄漏风险，并给出优化建议
 磁盘空间分析：可视化磁盘使用分布，识别大文件与冗余数据
-根因分析服务：针对系统异常进行智能归因，定位性能瓶颈
-RESTful API：标准化接口，便于对接前端 Dashboard 或第三方系统
-微服务兼容：内置认证与订单微服务模块，支持后续分布式扩展
+AI根因分析：自动检测异常，调用通义千问深度分析
+智能对话： 自然语言查询系统状态，AI助手实时响应
+RESTful API：标准化接口，便于对接前端Dashboard或第三方系统
+历史回溯： 监控数据持久化，趋势一目了然
  
 🛠️ 技术栈
-后端框架：Spring Boot 3.x、Spring MVC
+后端框架：Spring Boot 3.4、Spring MVC
 数据持久化：MyBatis-Plus、MySQL
+缓存：Redis会话存储、对话历史
+AI集成：通义千问API
 系统采集：OSHI（系统硬件信息采集）
 项目构建：Maven
-工具库：Lombok（简化代码）
+前端：Thymeleaf + ECharts
+
  
 🚀 快速开始
 1. 环境准备
 JDK 17+
 MySQL 8.0+
 Maven 3.8+
+
+数据流：硬件(OSHI) → 采集(Service) → 存储(MySQL) → 分析(AI) → 前端展示
  
 2. 克隆与配置
 ```
@@ -34,7 +42,14 @@ Maven 3.8+
      username: your_username
      password: your_password
  ```
-3. 启动项目
+
+3. 配置AI API Key
+```
+spring.ai.dashscope.api-key=你的通义千问API Key
+免费申请：阿里云百炼平台
+```
+
+4. 启动项目
 ```
  mvn clean install
  mvn spring-boot:run
@@ -47,31 +62,37 @@ monitoring-platform/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/monitor/monitoring_platform/
+│   │   │   ├── config/          
+│   │   │   │   ├── AiConfig.java
+│   │   │   │   └── RedisConfig.java
 │   │   │   ├── controller/          # API 接口层
+│   │   │   │   ├── AiChatController.java
 │   │   │   │   ├── DashboardController.java
 │   │   │   │   ├── MetricController.java
 │   │   │   │   └── RealSystemMonitorController.java
 │   │   │   ├── entity/              # 数据实体类
 │   │   │   │   ├── Diagnosis.java
 │   │   │   │   ├── DiskInfo.java
-│   │   │   │   ├── DiskSpaceAnalysis
-│   │   │   │   ├── SmartAnalysisResult
-│   │   │   │   ├── SpaceCategory
-│   │   │   │   ├── SpaceItem
-│   │   │   │   ├── SystemMetrics.java
+│   │   │   │   ├── DiskSpaceAnalysis.java
+│   │   │   │   ├── SmartAnalysisResult.java
+│   │   │   │   ├── SpaceCategory.java
+│   │   │   │   ├── SpaceItem.java
+│   │   │   │   └── SystemMetrics.java
 │   │   │   ├── mapper/              # 数据访问层
 │   │   │   │   └── SystemMetricsMapper.java
-│   │   │   ├── microservices/        # 微服务模块
-│   │   │   │   ├── AuthMicroservice.java
-│   │   │   │   └── OrderMicroservice.java
 │   │   │   ├── service/             # 业务逻辑层
+│   │   │   │   ├── AiChatService.java
+│   │   │   │   ├── AiSmart.java
+│   │   │   │   ├── DashboardService.java
+│   │   │   │   ├── DataGeneratorService.java
+│   │   │   │   ├── DiskSpaceAnalyzerService.java
+│   │   │   │   ├── MetricService.java
 │   │   │   │   ├── RealSystemDataService.java
-│   │   │   │   ├── DiskSpaceAnalyzer.java
+│   │   │   │   ├── RealSystemMonitorService.java
 │   │   │   │   ├── RootCauseAnalysisService.java
-│   │   │   │   └── DataGeneratorService
-│   │   │   │   └── SmartAlertService
-│   │   │   │   └── SmartRootCauseService
-│   │   │   │   └── SystemMetricsService
+│   │   │   │   ├── SmartAlertService.java
+│   │   │   │   ├── SmartRootCauseService.java
+│   │   │   │   └── SystemMetricsService.java
 │   │   │   └── MonitoringPlatformApplication.java  # 启动类
 │   │   └── resources/               # 配置文件
 │   └── test/                        # 单元测试
@@ -84,6 +105,8 @@ monitoring-platform/
  /api/monitor/diagnose/memory      GET        执行内存问题诊断 
  /api/disk/analysis                GET       获取磁盘空间分析结果 
  /api/rootcause/analyze            POST     提交异常数据并获取根因分析 
+ /api/system/real-metrics          GET        获取实时监控数据
+ /api/ai/chat                      POST          AI 对话
  
 📷 界面预览
 
