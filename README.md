@@ -1,6 +1,7 @@
 🖥️ Smart Monitoring Platform（ai智能电脑监控平台）
 
 一个能“看懂”你电脑状态的智能监控平台 —— 实时采集硬件数据，AI辅助诊断系统异常。
+
 一个基于Spring Boot的轻量级电脑硬件监控与诊断平台，支持实时监控CPU、内存、磁盘、网速等系统指标，并提供智能内存问题诊断与根因分析功能。
 
 ✨ 核心功能
@@ -24,14 +25,14 @@ AI集成：通义千问API
 项目构建：Maven
 前端：Thymeleaf + ECharts
 ```
+
+数据流：硬件(OSHI) → 采集(Service) → 存储(MySQL) → 分析(AI) → 前端展示
  
 🚀 快速开始
 1. 环境准备
 JDK 17+
 MySQL 8.0+
 Maven 3.8+
-
-数据流：硬件(OSHI) → 采集(Service) → 存储(MySQL) → 分析(AI) → 前端展示
  
 2. 克隆与配置
 ```
