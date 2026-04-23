@@ -1,10 +1,10 @@
-🖥️ Smart Monitoring Platform（智能电脑监控平台）
+🖥️ Smart Monitoring Platform（ai智能电脑监控平台）
 
 一个能“看懂”你电脑状态的智能监控平台 —— 实时采集硬件数据，AI辅助诊断系统异常。
- 
 一个基于Spring Boot的轻量级电脑硬件监控与诊断平台，支持实时监控CPU、内存、磁盘、网速等系统指标，并提供智能内存问题诊断与根因分析功能。
 
 ✨ 核心功能
+```
 实时系统监控：采集CPU使用率、内存占用、磁盘空间、网络上下行速度等关键指标
 智能内存诊断：自动检测高内存占用、潜在内存泄漏风险，并给出优化建议
 磁盘空间分析：可视化磁盘使用分布，识别大文件与冗余数据
@@ -12,8 +12,10 @@ AI根因分析：自动检测异常，调用通义千问深度分析
 智能对话： 自然语言查询系统状态，AI助手实时响应
 RESTful API：标准化接口，便于对接前端Dashboard或第三方系统
 历史回溯： 监控数据持久化，趋势一目了然
+```
  
 🛠️ 技术栈
+```
 后端框架：Spring Boot 3.4、Spring MVC
 数据持久化：MyBatis-Plus、MySQL
 缓存：Redis会话存储、对话历史
@@ -21,7 +23,7 @@ AI集成：通义千问API
 系统采集：OSHI（系统硬件信息采集）
 项目构建：Maven
 前端：Thymeleaf + ECharts
-
+```
  
 🚀 快速开始
 1. 环境准备
@@ -111,18 +113,25 @@ monitoring-platform/
 📷 界面预览
 
 智能运维监控大屏界面
+
 <img width="1105" height="620" alt="image" src="https://github.com/user-attachments/assets/039a32b2-4ba3-4c05-bcc0-f14d45637902" />
 
 组件监控详情界面
+
 <img width="1104" height="561" alt="image" src="https://github.com/user-attachments/assets/e1cb58cb-762a-4fa0-9523-ae79bec18e0f" />
 
 磁盘空间全景分析
+
 <img width="955" height="812" alt="image" src="https://github.com/user-attachments/assets/63c9b8bf-f197-437d-8562-697fea0557a6" />
 
 AI智能根因分析界面
-<img width="1106" height="598" alt="image" src="https://github.com/user-attachments/assets/365b3d5e-ffdb-4101-afca-9d405005c40b" />
+
+<img width="2505" height="1049" alt="image" src="https://github.com/user-attachments/assets/47ae8597-0c23-46ed-9bb5-9939d4fc6d5c" />
+<img width="2500" height="1294" alt="image" src="https://github.com/user-attachments/assets/13962ef0-5dd3-4161-a91d-c7ac9e83dcf8" />
+
 
 历史数据查询界面
+
 <img width="1107" height="584" alt="image" src="https://github.com/user-attachments/assets/3a958c2a-2d29-44f5-9826-e9e05a9324b9" />
  
 📄 许可证
